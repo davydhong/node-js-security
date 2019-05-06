@@ -4,6 +4,8 @@ import bodyParser from 'body-parser';
 import routes from './src/routes/crmRoutes';
 import helmet from 'helmet';
 import RateLimit from 'express-rate-limit';
+import cookieParser from 'cookie-parser';
+import csrf from 'csurf';
 
 const app = express();
 const PORT = 3000;
@@ -18,6 +20,10 @@ const limiter = new RateLimit({
   delayMs: 0 // disable delay
 });
 app.use(limiter);
+
+// csrf protection set up
+const csrfProtection = csrf({ cookie: true });
+app.use(cookieParser());
 
 // mongoose connection
 mongoose.Promise = global.Promise;
@@ -34,6 +40,6 @@ routes(app);
 // serving static files
 app.use(express.static('public'));
 
-app.get('/', (req, res) => res.send(`Node and express server is running on port ${PORT}`));
+app.get('/', csrfProtection, (req, res) => res.send(`Node and express server is running on port ${PORT}`));
 
 app.listen(PORT, () => console.log(`your server is running on port ${PORT}`));
